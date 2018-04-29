@@ -183,6 +183,42 @@ c2=size(centers3,1);
 %size is used to know the no. of distinguish centers identified by the
 %imfindcircles function.
 
+%performing final algorithm for detecting both the cell and parasite lie
+%close to each other and the parasite lies within the cell.
+
+detect=zeros(uint8(c2),1);
+for i=1: c2
+    for j=1: c1
+        xs=centers1(j,1);
+        xb=centers3(i,1);
+        ys=centers1(j,2);
+        yb=centers3(i,2);
+        dist=sqrt(((xs-xb)^2)+((ys-yb)^2));
+        % we do so by finding the distance between the center of the two
+        % circles, i.e., bigger circle and the smaller circle;
+        % if the distance between the two center is smaller than the radius
+        % of the bigger circle then obviously the smaller circle lies
+        % within the bigger circle.
+        if dist<radii3(i)
+            detect(i)=detect(i)+1;
+            end
+    end
+end
+p=0;
+for i = 1 : c2
+    if detect(i)>=2
+        p=p+1;
+    end
+end
+
+%if more than two cicles lie inside the cell this means that this is the
+%correct case for detection and the parasite is present in the cell.
+%displaying the end result
+if p>=2
+     uiwait(msgbox({'Operation Completed';'Parasite detected'},'Success','modal'))
+else
+    uiwait(msgbox({'Operation Completed';'Parasite not detected'},'Fail','modal'));
+end
 
 
 function pushbutton3_Callback(hObject, eventdata, handles)
