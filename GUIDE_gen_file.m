@@ -226,3 +226,38 @@ function pushbutton3_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
  [filename pathname] = uigetfile({'*.jpg';'*.bmp'},'File Selector');
+  handles.p = strcat(pathname, filename);
+ axes(handles.axes1);
+ imshow(handles.p);
+ %loading image and showing to user screen
+ guidata(hObject,handles);
+
+ p = imread(handles.p);
+  %reading the image file to a vriable
+  
+[rows, columns, numberOfColorChannels] = size(p);
+if numberOfColorChannels > 1
+	% It's not really gray scale like we expected - it's color.
+	% Use weighted sum of ALL channels to create a gray scale image.
+	grayImg = rgb2gray(p);   
+    red = p(:,:,1);
+    green = p(:,:,2);
+    blue = p(:,:,3);
+    out = red>=0 & red<=255 & green>=0 & green<=130 & blue>=0 & blue<=255;
+    %[centersp,radiip] = imfindcircles(out,[5 20],'ObjectPolarity','bright','Sensitivity',0.96);
+    %imshow(out);
+else
+    %[centers1,radii1] = imfindcircles(q,[5 20],'ObjectPolarity','bright','Sensitivity',0.96);
+    %imshow(q);
+    grayImg = q;
+    out=q;
+	% ALTERNATE METHOD: Convert it to gray scale by taking only the green channel,
+	% which in a typical snapshot will be the least noisy channel.
+	% grayImage = grayImage(:, :, 2); % Take green channel.
+end
+c=imfuse(out,grayImg);
+%imshow(c);
+[centersp,radiip] = imfindcircles(c,[5 25],'ObjectPolarity','bright','Sensitivity',0.96);
+%h1 = viscircles(centers1,radii1);
+np=size(centersp,1);
+h = msgbox(sprintf('Platelets count for the given sample is %d',np));
