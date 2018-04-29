@@ -125,6 +125,63 @@ imshow(grayImage);
 
 c=imfuse(out,grayImage);%imfuse is used to overlap two images
 
+%applying watershed segmentation
+%This technique help us enhance the image accordingly so that the parasite
+%and the cell becomes distinguishable from the surroundings.
+hy = fspecial('sobel');
+hx = hy';
+Iy = imfilter(double(grayImage), hy, 'replicate');
+Ix = imfilter(double(grayImage), hx, 'replicate');
+gradmag = sqrt(Ix.^2 + Iy.^2);
+%figure
+%imshow(gradmag,[]), title('Gradient magnitude (gradmag)')
+
+se = strel('disk', 20);
+Io = imopen(grayImage, se);
+%figure
+%imshow(Io), title('Opening (Io)')
+Ie = imerode(grayImage, se);
+Iobr = imreconstruct(Ie, grayImage);
+%figure
+%imshow(Iobr), title('Opening-by-reconstruction (Iobr)')
+Ioc = imclose(Io, se);
+%figure
+%imshow(Ioc), title('Opening-closing (Ioc)')
+
+%imp can superimpose this by openingbr
+Iobrd = imdilate(Iobr, se);
+Iobrcbr = imreconstruct(imcomplement(Iobrd), imcomplement(Iobr));
+Iobrcbr = imcomplement(Iobrcbr);
+%figure
+%imshow(Iobrcbr), title('Opening-closing by reconstruction (Iobrcbr)')
+
+%binary image with unclear edges
+bw = imbinarize(Iobrcbr);
+%figure
+%imshow(bw), title('Thresholded opening-closing by reconstruction (bw)');
+bw=(bw==0);
+%imshow(bw), title('Thresholded opening-closing by reconstruction (bw)');
+
+%overlapping several images to make a combined better image.
+d=imfuse(bw,Iobrcbr);
+e=imfuse(bw,Io);
+r=imfuse(bw,Ioc);%less clear few parasites were missing, so processing further
+w=imfuse(bw,Iobr);
+f=imfuse(d,e);
+g=imfuse(w,r);
+t=imfuse(f,g);%approved
+%figure, imshow(t);
+%the IMAGE contained in the MATRIX 't' is the final image that we will use
+%for detection of red blood cells RBCs
+[centers3,radii3] = imfindcircles(t,[25 45],'ObjectPolarity','bright','Sensitivity',0.96,'Method','twostage');
+%using imfindcircles a predefined function we will look for bigger radius
+%circular object in the image that will resemble cells.
+%h3 = viscircles(centers3,radii3);
+
+c1=size(centers1,1);
+c2=size(centers3,1);
+%size is used to know the no. of distinguish centers identified by the
+%imfindcircles function.
 
 
 
