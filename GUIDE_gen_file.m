@@ -97,11 +97,36 @@ function pushbutton2_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+ q = imread(handles.q);
+  %reading the image file to a vriable for further processing
+  %the image is stored in a matrix q
+  
+[rows, columns, numberOfColorChannels] = size(q);
+if numberOfColorChannels > 1
+	% It's not really gray scale like we expected - it's color.
+	% Use weighted sum of ALL channels to create a gray scale image.
+	grayImage = rgb2gray(q);   
+    red = q(:,:,1);
+    green = q(:,:,2);
+    blue = q(:,:,3);
+    out = red>=0 & red<=255 & green>=0 & green<=100 & blue>=0 & blue<=255;
+    [centers1,radii1] = imfindcircles(out,[3 8],'ObjectPolarity','bright','Sensitivity',0.93);
+    %imfindcircles is used to find the smaller circle present in the
+    %parasite infected image. the radius range is small for these kind of circle.
+else
+    [centers1,radii1] = imfindcircles(q,[3 8],'ObjectPolarity','bright','Sensitivity',0.94);
+    %imshow(q);
+    grayImage = q;
+	% ALTERNATE METHOD: Convert it to gray scale by taking only the green channel,
+	% which in a typical snapshot will be the least noisy channel.
+	% grayImage = grayImage(:, :, 2); % Take green channel.
+end
+imshow(grayImage);
 
-function pushbutton2_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton2 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+c=imfuse(out,grayImage);%imfuse is used to overlap two images
+
+
+
 
 function pushbutton3_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton3 (see GCBO)
